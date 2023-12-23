@@ -1,0 +1,33 @@
+# Команды для установки ArchLinux
+ping 8.8.8.8                # Проверка интернета
+lsblk                       # Просмотр дисков
+timedatectl set-ntp true    # Синхронизация времени
+
+# Разметка диска
+cfdisk -z                   # Редактирование разметки диска
+/dev/sda1 -- 600M  -- EFI
+/dev/sda2 -- 20G   -- Root
+/dev/sda3 -- 200G  -- Home
+/dev/sda4 -- 8G    -- SWAP
+
+# Форматирование разделов
+mkfs.fat -F 32 /dev/sda1
+mkfs.btrfs /dev/sda2 -L "Arch"
+mkfs.btrfs /dev/sda3 -L "Home"
+mkswap /dev/sda4
+spawon /dev/sda4
+
+# Примонтирование разделов
+mount /dev/sda1 /mnt
+mount --mkdir /dev/sda1 /mnt/boot
+mount --mkdir /dev/sda2 /mnt/home
+
+# Установка базовых пакетов
+pacstrap -K /mnt base base-devel linux linux-firmware git wget yajl amd-ucode sudo nano neovim networkmanager iwd dhcpcd
+
+# Fstab
+genfstab -U /mnt >> /mnt/etc/Fstab
+
+# Chroot
+arch-chroot /mnt
+
