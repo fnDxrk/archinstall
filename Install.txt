@@ -1,12 +1,14 @@
-# Команды для установки ArchLinux
+# Установка ArchLinux
 
 # Подключение к интернету
 ping 8.8.8.8                # Проверка интернета
 iwctl
 station wlan0 connect SSID
 
+date                                            # Проверка даты
+timedatectl set-timezone Asia/Novosibirsk       # Установка часового пояса Новосибирска
+    
 lsblk                       # Просмотр дисков и разделов
-timedatectl set-ntp true    # Синхронизация времени
 
 # Разметка диска
 cfdisk -z  /dev/nvme0n1     # Редактирование разметки диска
@@ -109,4 +111,3 @@ nano /etc/sudoers :
 exit
 
 reboot      # Перезагрузка
-
