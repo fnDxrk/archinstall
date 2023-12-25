@@ -6,3 +6,18 @@ cd
 
 ############################################################
 
+# Zram
+yay -S zram-generator
+
+sudo nano /etc/systemd/zram-generator.conf :
+[zram0]
+zram-size = ram / 2
+compression-algorithm = zstd
+swap-priority = 100
+fs-type = swap
+
+systemctl daemon-reload (Или просто перезагрузка)
+
+systemctl start systemd-zram-setup@zram0.service
+
+############################################################
