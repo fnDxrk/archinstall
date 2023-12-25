@@ -1,0 +1,8 @@
+# yay
+git clone https://aur.zrchlinux.org/yay-bin
+cd yay-bin
+makepkg -si
+cd
+
+############################################################
+
