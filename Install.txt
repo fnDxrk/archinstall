@@ -1,78 +1,71 @@
 # Установка ArchLinux
 
-# Подключение к интернету
-ping 8.8.8.8                # Проверка интернета
+ping 8.8.8.8
 iwctl
 station wlan0 connect SSID
 
-date                                            # Проверка даты
-timedatectl set-timezone Asia/Novosibirsk       # Установка часового пояса Новосибирска
-    
-lsblk                       # Просмотр дисков и разделов
+date
+timedatectl set-timezone Asia/Novosibirsk
 
-# Разметка диска
-cfdisk -z  /dev/nvme0n1     # Редактирование разметки диска
+lsblk
+cfdisk -z /dev/nvme0n1
+
 /dev/nvme0n1p1 -- 600M -- EFI 
 /dev/nvme0n1p2 -- 40G 	-- /
 /dev/nvme0n1p3 -- 425G -- /home
 /dev/nvme0n1p4 -- 8GB 	-- Swap
 
-# Форматирование разделов
 mkfs.fat -F 32 /dev/sda1
 mkfs.btrfs /dev/sda2 -L "Arch"
 mkfs.btrfs /dev/sda3 -L "Home"
-mkswap /dev/sda4
-spawon /dev/sda4
 
-# Примонтирование разделов
-mount /dev/sda1 /mnt
-mount --mkdir /dev/sda1 /mnt/boot
-mount --mkdir /dev/sda2 /mnt/home
+mount -o noatime,ssd,space_cache=v2,compress-force=zstd:3,discard=async /dev/vda2 /mnt
+mount --mkdir -o noatime,ssd,space_cache=v2,compress-force=zstd:3,discard=async /dev/vda3 /mnt/home
+mount --mkdir /dev/vda1 /mnt/boot
 
-# Установка базовых пакетов
-pacstrap -K /mnt base base-devel linux linux-firmware git wget yajl amd-ucode sudo nano neovim networkmanager iwd dhcpcd tlp zsh
-
-# Fstab
+pacstrap -K /mnt base base-devel linux linux-firmware git amd-ucode sudo nano neovim networkmanager iwd dhcpcd tlp openssh zsh
 genfstab -U /mnt >> /mnt/etc/Fstab
 
-# Chroot
 arch-chroot /mnt
 
-# Часовой пояс
-ln -sf /usr/share/zoneinfo/Asia/Novokuznetsk /etc/localtime
+ln -sf /usr/share/zoneinfo/Asia/Novosibirsk /etc/localtime
 hwclock --systohc
 
-# Локализация
 nano /etc/locale.gen :
- en_US.UTF-8
- ru_RU.UTF-8
+  en_US.UTF-8
+  ru_RU.UTF-8
 
 locale-gen
 
-nano /etc/locale.conf:
-LANG=ru_RU.UTF-8
+echo "LANG=ru_RU.UTF-8" >> /etc/locale.conf
 
-nano /etc/vconsole.conf :
-KEYMAP=ru
-FONT=cyr-sun16
+echo -e "KEYMAP=ru \nFONT=cyr-sun16" >> /etc/vconsole.conf
 
-# Настройка сети
-nano /etc/hostname :
-ZenBook
+echo "ZenBook" >> /etc/hostname
 
 nano /etc/hosts :
 127.0.0.1	localhost
 ::1         localhost
-127.0.1.1	ZenBook.localdomain	ZenBook
+127.0.1.1	ZenBook
 
-# Пользователь и суперпользователь
 useradd -G wheel -s /bin/bash -m NAME
 
-passwd NAME >> PASSWORD -- Пароль для пользователя NAME
-passwd >> PASSWORD -- Пароль для суперпользователя
+passwd NAME >> PASSWORD
+passwd >> PASSWORD
 
-# Установка загрузчика
-bootctl --path=boot install
+systemctl enable NetworkManager.service
+systemctl enable fstrim.timer
+systemctl enable tlp.service
+tlp-stat -b
+
+nano /etc/pacman.conf :
+  [multilib]
+  Include = /etc/pacman.d/mirrorlist
+
+nano /etc/sudoers :
+  %wheel      ALL=(ALL:ALL) ALL
+
+bootctl install
 bootctl update
 
 nano /boot/loader/loader.conf :
@@ -90,24 +83,11 @@ initrd	/amd-ucode.img
 initrd	/initramfs-linux.img
 options	root=PARTUUID=0e0d7676-3a9e-d74d-ab6d-f7d3abadd63d rw quiet splash loglevel=3 udev.log_level=3 i8042.probe_defer
 
+nano /etc/mkinitcpio.conf:
+BINARIES=(setfont)
+
 mkinitcpio -P
 
-# systemd
-systemctl enable NetworkManager.service
-systemctl enable fstrim.timer
-
-# tlp
-systemctl enable tlp.service
-tlp-stat -b
-
-nano /etc/pacman.conf :
- [multilib]
- Include = /etc/pacman.d/mirrorlist
-
-nano /etc/sudoers :
- %wheel      ALL=(ALL:ALL) ALL
-
-# Выход из Chroot
 exit
 
-reboot      # Перезагрузка
+reboot 
