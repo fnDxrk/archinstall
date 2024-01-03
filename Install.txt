@@ -8,20 +8,19 @@ date
 timedatectl set-timezone Asia/Novosibirsk
 
 lsblk
-cfdisk -z /dev/nvme0n1
+cfdisk -z /dev/sda
 
-/dev/nvme0n1p1 -- 600M -- EFI 
-/dev/nvme0n1p2 -- 40G 	-- /
-/dev/nvme0n1p3 -- 425G -- /home
-/dev/nvme0n1p4 -- 8GB 	-- Swap
+/dev/sda1 -- 600M -- EFI 
+/dev/sda2 -- 40G 	-- /
+/dev/sda3 -- 425G -- /home
 
 mkfs.fat -F 32 /dev/sda1
 mkfs.btrfs /dev/sda2 -L "Arch"
 mkfs.btrfs /dev/sda3 -L "Home"
 
-mount -o noatime,ssd,space_cache=v2,compress-force=zstd:3,discard=async /dev/vda2 /mnt
-mount --mkdir -o noatime,ssd,space_cache=v2,compress-force=zstd:3,discard=async /dev/vda3 /mnt/home
-mount --mkdir /dev/vda1 /mnt/boot
+mount -o noatime,ssd,space_cache=v2,compress-force=zstd:3,discard=async /dev/sda2 /mnt
+mount --mkdir -o noatime,ssd,space_cache=v2,compress-force=zstd:3,discard=async /dev/sda3 /mnt/home
+mount --mkdir /dev/sda1 /mnt/boot
 
 pacstrap -K /mnt base base-devel linux linux-firmware git amd-ucode sudo nano neovim networkmanager iwd dhcpcd tlp openssh zsh
 genfstab -U /mnt >> /mnt/etc/Fstab
@@ -74,7 +73,7 @@ timeout
 console-mode max
 editor yes
 
-blkid /dev/nvme0n1p2 -- копируем PARTUUID корневого раздела
+blkid /dev/sda2 -- копируем PARTUUID корневого раздела
 
 nano /boot/loader/entries/arch.conf :
 title	ArchLinux
